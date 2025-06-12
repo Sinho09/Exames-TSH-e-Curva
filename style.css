@@ -117,7 +117,27 @@ button:hover, .tab-btn:hover, .tab-btn.active, .print-btn:hover {
   justify-content: center;
 }
 
- #old-history-search {
+#history, #old-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-start;
+}
+.exam-item {
+  width: calc(50% - 10px);
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+  .exam-item {
+    width: 100%;
+  }
+}
+
+#old-history-search {
   width: 100%;
   max-width: 400px;
   padding: 8px 12px;
@@ -289,6 +309,25 @@ input.pio {
     
   }
 
+@media print {
+  * {
+    all: unset !important;
+    color: black !important;
+  }
+
+  .exam-item {
+    width: 100% !important;
+    page-break-inside: avoid;
+    margin-bottom: 20px;
+    font-size: 12px;
+    border: 1px solid black;
+    padding: 10px;
+  }
+
+  #history, #old-history {
+    display: block !important;
+  }
+}
 
 }
 
