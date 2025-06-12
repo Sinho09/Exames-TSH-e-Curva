@@ -14,8 +14,27 @@ dobInput.addEventListener('input', () => {
   }
 });
 
-const history = JSON.parse(localStorage.getItem('historyData')) || [];
-updateHistory();
+function loadHistoryFromDB() {
+  const request = indexedDB.open('ExamesDB', 1);
+
+  request.onsuccess = (e) => {
+    const db = e.target.result;
+    const tx = db.transaction('historico', 'readonly');
+    const store = tx.objectStore('historico');
+    const get = store.get('backup');
+
+    get.onsuccess = () => {
+      if (get.result && get.result.data) {
+        history.length = 0;
+        history.push(...get.result.data);
+        updateHistory();
+      }
+    };
+  };
+}
+
+const history = [];
+loadHistoryFromDB();
 
 function showMessage(text, duration = 4000) {
   const msg = document.getElementById('message');
@@ -25,9 +44,24 @@ function showMessage(text, duration = 4000) {
     msg.style.display = 'none';
   }, duration);
 }
-
 function saveHistory() {
-  localStorage.setItem('historyData', JSON.stringify(history));
+  const request = indexedDB.open('ExamesDB', 1);
+
+  request.onupgradeneeded = (e) => {
+    const db = e.target.result;
+    if (!db.objectStoreNames.contains('historico')) {
+      db.createObjectStore('historico', { keyPath: 'id' });
+    }
+  };
+
+  request.onsuccess = (e) => {
+    const db = e.target.result;
+    const tx = db.transaction('historico', 'readwrite');
+    const store = tx.objectStore('historico');
+    store.put({ id: 'backup', data: history });
+  };
+}
+
 }
 
 function showTab(tab) {
