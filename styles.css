@@ -1,0 +1,295 @@
+:root {
+  --azul-escuro: #003366;
+  --azul-medio: #007bff;
+  --azul-claro: #e6f0fa;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: var(--azul-claro);
+  margin: 0;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+.container {
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  background: white;
+  padding: 20px 40px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  box-sizing: border-box;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+header img.logo {
+  width: 60px;
+  height: 60px;
+}
+
+header h1 {
+  color: var(--azul-escuro);
+  margin: 5px 0;
+  font-size: 22px;
+}
+
+header h2 {
+  color: var(--azul-medio);
+  margin: 0;
+  font-size: 16px;
+}
+
+.custom-footer {
+  text-align: center;
+  font-size: 13px;
+  margin-top: 40px;
+  color: rgba(0, 0, 0, 0.3); /* cor bem suave/transparente */
+  font-style: italic;
+}
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+input, select, textarea {
+  padding: 8px;
+  font-size: 14px;
+  flex: 1 1 200px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+textarea {
+  flex: 1 1 100%;
+  resize: vertical;
+  min-height: 60px;
+}
+
+button, .tab-btn, .print-btn {
+  flex: none;
+  min-width: 40px;
+  padding: 8px;
+  background-color: var(--azul-medio);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border-radius: 6px;
+}
+
+button:hover, .tab-btn:hover, .tab-btn.active, .print-btn:hover {
+  background-color: var(--azul-escuro);
+}
+
+.print-btn {
+  background-color: #28a745;
+}
+
+.print-btn:hover {
+  background-color: #1e7e34;
+}
+
+.print-btn.danger {
+  background-color: #dc3545;
+}
+
+.print-btn.danger:hover {
+  background-color: #a71d2a;
+}
+
+#patients-list,
+#history,
+#old-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+ #old-history-search {
+  width: 100%;
+  max-width: 400px;
+  padding: 8px 12px;
+  font-size: 15px;
+  margin: 12px auto 20px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  display: block;
+}
+
+.patient {
+  background: var(--azul-claro);
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  font-size: 13px;
+  width: 300px;
+  max-width: 100%;
+}
+
+.timer {
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.timer span {
+  font-weight: bold;
+  color: var(--azul-escuro);
+  min-width: 130px;
+}
+
+input.pio {
+  width: 26px;
+  text-align: center;
+  padding: 3px;
+  font-size: 12px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.details {
+  display: none;
+  margin-top: 8px;
+}
+
+.toggle-btn {
+  cursor: pointer;
+  background-color: var(--azul-medio);
+  color: white;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-right: 5px;
+}
+
+.toggle-btn:hover {
+  background-color: var(--azul-escuro);
+}
+
+.toggle-btn[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  background: #333;
+  color: #fff;
+  padding: 3px 6px;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+}
+
+.collapsible {
+  display: none;
+}
+
+.message {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--azul-medio);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  display: none;
+  z-index: 1000;
+  font-weight: bold;
+  text-align: center;
+  font-size: 14px;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+.blink {
+  animation: blink 1s infinite;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+
+  .tabs, .toggle-btn, #message, form, #patients-list, .print-btn, audio {
+    display: none !important;
+  }
+
+  .container {
+    box-shadow: none;
+    padding: 10px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  header h1 {
+    font-size: 14px;
+  }
+
+  header h2 {
+    font-size: 10px;
+  }
+
+  .patient {
+    background: white;
+    border: 1px solid #000;
+    margin: 2px;
+    padding: 4px;
+    font-size: 10px;
+  }
+
+  .patient strong {
+    display: block;
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  h3 {
+    font-size: 12px;
+    color: black;
+    text-align: center;
+    
+  }
+
+
+}
+
+
