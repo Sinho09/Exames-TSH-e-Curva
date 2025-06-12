@@ -224,14 +224,19 @@ function createSequentialTimers(count, parent, container, historyIndex, minutes)
     measureReady.push(false);
     timers.push(timerDiv);
 
-    confirmBtn.onclick = () => {
-      if (!measureReady[i]) {
-        showMessage("⏳ Aguarde o cronômetro chegar a zero.");
-        return;
-      }
-      confirmBtn.remove();
-      countdownSpan.textContent = "✅ Medida confirmada";
-      parent.classList.remove('blink');
+   confirmBtn.onclick = () => {
+  if (!measureReady[index]) {
+    showMessage("⏳ Aguarde o cronômetro chegar a zero.");
+    return;
+  }
+  // Parar o alarme ao confirmar
+    alertSound.pause();
+    alertSound.currentTime = 0;
+
+    confirmBtn.remove();
+    countdownSpan.textContent = "✅ Medida confirmada";
+    parent.classList.remove('blink');
+
 
       const pioOD = createInput('PIO OD');
       const pioOE = createInput('PIO OE');
