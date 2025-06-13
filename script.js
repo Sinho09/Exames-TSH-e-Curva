@@ -14,27 +14,8 @@ dobInput.addEventListener('input', () => {
   }
 });
 
-function loadHistoryFromDB() {
-  const request = indexedDB.open('ExamesDB', 1);
-
-  request.onsuccess = (e) => {
-    const db = e.target.result;
-    const tx = db.transaction('historico', 'readonly');
-    const store = tx.objectStore('historico');
-    const get = store.get('backup');
-
-    get.onsuccess = () => {
-      if (get.result && get.result.data) {
-        history.length = 0;
-        history.push(...get.result.data);
-        updateHistory();
-      }
-    };
-  };
-}
-
-const history = [];
-loadHistoryFromDB();
+const history = JSON.parse(localStorage.getItem('historyData')) || [];
+updateHistory();
 
 function showMessage(text, duration = 4000) {
   const msg = document.getElementById('message');
@@ -44,24 +25,9 @@ function showMessage(text, duration = 4000) {
     msg.style.display = 'none';
   }, duration);
 }
+
 function saveHistory() {
-  const request = indexedDB.open('ExamesDB', 1);
-
-  request.onupgradeneeded = (e) => {
-    const db = e.target.result;
-    if (!db.objectStoreNames.contains('historico')) {
-      db.createObjectStore('historico', { keyPath: 'id' });
-    }
-  };
-
-  request.onsuccess = (e) => {
-    const db = e.target.result;
-    const tx = db.transaction('historico', 'readwrite');
-    const store = tx.objectStore('historico');
-    store.put({ id: 'backup', data: history });
-  };
-}
-
+  localStorage.setItem('historyData', JSON.stringify(history));
 }
 
 function showTab(tab) {
@@ -224,19 +190,14 @@ function createSequentialTimers(count, parent, container, historyIndex, minutes)
     measureReady.push(false);
     timers.push(timerDiv);
 
-   confirmBtn.onclick = () => {
-  if (!measureReady[index]) {
-    showMessage("⏳ Aguarde o cronômetro chegar a zero.");
-    return;
-  }
-  // Parar o alarme ao confirmar
-    alertSound.pause();
-    alertSound.currentTime = 0;
-
-    confirmBtn.remove();
-    countdownSpan.textContent = "✅ Medida confirmada";
-    parent.classList.remove('blink');
-
+    confirmBtn.onclick = () => {
+      if (!measureReady[i]) {
+        showMessage("⏳ Aguarde o cronômetro chegar a zero.");
+        return;
+      }
+      confirmBtn.remove();
+      countdownSpan.textContent = "✅ Medida confirmada";
+      parent.classList.remove('blink');
 
       const pioOD = createInput('PIO OD');
       const pioOE = createInput('PIO OE');
