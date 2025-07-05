@@ -64,7 +64,7 @@ form.addEventListener('submit', function (e) {
   const patientData = {
     name, dob, operator, type, observation,
     start: startTime, end: null, measures: [],
-    date: startTime.toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0
     paquimetria: { od: '', oe: '' }
   };
 
@@ -316,7 +316,7 @@ function printSingleExam(exam) {
 function updateHistory() {
   historyDiv.innerHTML = "";
   oldHistoryDiv.innerHTML = "";
-  const today = formatDate(new Date());
+  const today = new Date().toISOString().split('T')[0];
 
   history.forEach((exam, index) => {
     if (!exam.end) return;
