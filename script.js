@@ -134,7 +134,7 @@ function startInitial(type, btn, historyIndex) {
     waterBtn.textContent = 'Paciente terminou os 5 copos de água';
     waterBtn.onclick = () => {
       waterBtn.remove();
-      createSequentialTimers(3, parent, timers, historyIndex, 1);
+      createSequentialTimers(3, parent, timers, historyIndex, 15);
     };
     parent.appendChild(waterBtn);
   } else if (type === 'curva') {
