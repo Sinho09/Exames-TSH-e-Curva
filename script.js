@@ -331,14 +331,14 @@ function updateHistory() {
     `;
 
     const toggle = document.createElement('button');
-    toggle.textContent = '⬇';
+    toggle.textContent = '▼';
     toggle.classList.add('toggle-btn');
 
     const detail = document.createElement('div');
     detail.style.display = 'none';
     toggle.onclick = () => {
       detail.style.display = detail.style.display === 'none' ? 'block' : 'none';
-      toggle.textContent = toggle.textContent === '⬇' ? '⬆' : '⬇';
+      toggle.textContent = toggle.textContent === '▼' ? '' : '▼';
     };
 
     const printBtn = document.createElement('button');
