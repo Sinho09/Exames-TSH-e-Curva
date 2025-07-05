@@ -26,7 +26,7 @@ function calculateAge(dob) {
 themeBtn.addEventListener('click', () => {
   document.body.classList.toggle('dark-mode');
   const dark = document.body.classList.contains('dark-mode');
-  themeBtn.textContent = dark ? ☀️' : '🌙';
+  themeBtn.textContent = dark ? '☀️' : '🌙';
   localStorage.setItem('darkMode', dark ? 'on' : 'off');
 });
 
