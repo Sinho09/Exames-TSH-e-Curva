@@ -64,7 +64,7 @@ form.addEventListener('submit', function (e) {
   const patientData = {
     name, dob, operator, type, observation,
     start: startTime, end: null, measures: [],
-    date: formatDate(startTime),
+    date: startTime.toISOString().split('T')[0]
     paquimetria: { od: '', oe: '' }
   };
 
