@@ -585,3 +585,27 @@ function clearHistory(tipo) {
     });
   });
 }
+
+// Historico Antigo 
+// Ocultar Botões 
+document.querySelector("button[onclick='printOldHistory()']").style.display = "none";
+document.querySelector("button[onclick=\"exportToCSV('old-history')\"]").style.display = "none";
+document.querySelector("button[onclick=\"clearHistory('all')\"]").style.display = "none";
+
+// Mostrar Botões
+
+//document.querySelector("button[onclick='printOldHistory()']").style.display = "inline-block"; 
+// document.querySelector("button[onclick=\"exportToCSV('old-history')\"]").style.display = "inline-block";
+//document.querySelector("button[onclick=\"clearHistory('all')\"]").style.display = "inline-block";
+
+// Historico do Dia
+//Ocultar Botões
+document.querySelector("button[onclick='printHistory()']").style.display = "none";
+document.querySelector("button[onclick=\"exportToCSV('history')\"]").style.display = "none";
+document.querySelector("button[onclick=\"clearHistory('day')\"]").style.display = "none";
+
+// Mostrar Botões
+
+//document.querySelector("button[onclick='printHistory()']").style.display = "inline-block";
+//document.querySelector("button[onclick=\"exportToCSV('history')\"]").style.display = "inline-block";
+//document.querySelector("button[onclick=\"clearHistory('day')\"]").style.display = "inline-block";
