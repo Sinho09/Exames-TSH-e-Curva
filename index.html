@@ -1,14 +1,4 @@
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Clínica de Olhos Adi Nascimento</title>
-      <link rel="stylesheet" href="style.css" />
-    </head>
-    <body>
-      <div class="container">
-
+  <!DOCTYPE html>
   <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -104,18 +94,16 @@
     <!-- 🔔 Mensagem Temporária -->
     <div id="message" class="message"></div>
 
-           <!-- 🔗 Firebase SDK compat (Firestore) -->
+    <!-- 🔗 Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-    <!-- ✅ Firebase Config e Inicialização -->
     <script>
       const firebaseConfig = {
         apiKey: "AIzaSyAOLydsDYnbfpZkRsx0dcsToysIf_GPuPc",
         authDomain: "tsh-curva-ioan.firebaseapp.com",
         databaseURL: "https://tsh-curva-ioan-default-rtdb.firebaseio.com",
         projectId: "tsh-curva-ioan",
-        storageBucket: "tsh-curva-ioan.appspot.com",
+        storageBucket: "tsh-curva-ioan.firebasestorage.app",
         messagingSenderId: "961298192170",
         appId: "1:961298192170:web:d666ccb657073f9ab2f053",
         measurementId: "G-Y16V6VY5M2"
@@ -125,9 +113,6 @@
       const db = firebase.firestore();
     </script>
 
-    <!-- ✅ Seu script principal, agora no final do <body> -->
     <script src="script.js"></script>
   </body>
 </html>
-
-    
