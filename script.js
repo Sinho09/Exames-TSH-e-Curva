@@ -71,7 +71,7 @@ form.addEventListener('submit', function (e) {
   start: startTime,
   end: null,
   measures: [],
-  date: formatDate(new Date()),,
+  date: formatDate(new Date()),
   paquimetria: { od: '', oe: '' }
 };
 
