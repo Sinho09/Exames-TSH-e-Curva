@@ -142,7 +142,7 @@ function startInitial(type, btn, historyIndex) {
     waterBtn.textContent = 'Paciente terminou os 5 copos de água';
     waterBtn.onclick = () => {
       waterBtn.remove();
-      createSequentialTimers(3, parent, timers, historyIndex, 15);
+      createSequentialTimers(3, parent, timers, historyIndex, 1);
     };
     parent.appendChild(waterBtn);
   } else if (type === 'curva') {
@@ -269,15 +269,17 @@ function saveToFirebase(exam) {
 
 function printSingleExam(exam) {
   const win = window.open('', '', 'width=800,height=600');
-  win.document.write('<html><head><title></title>');
+  win.document.write('<html><head><title>Exame</title>');
   win.document.write(`
     <style>
       @page { size: A5; margin: 10mm; }
-      body { font-family: Arial; font-size: 12px; text-align: left; }
+      body { font-family: Arial; font-size: 12px; line-height: 1.4; }
       .block { margin-bottom: 10px; }
-      h2 { text-align: center; margin-top: 20px; }
-      h3 { text-align: center; margin-top: -10px; font-weight: normal; font-size: 14px; }
-      .measure-title { font-weight: bold; margin-top: 10px; }
+      h2 { text-align: center; margin-top: 20px; font-size: 18px; }
+      h3 { text-align: center; margin: 5px 0 15px 0; font-weight: normal; font-size: 14px; }
+      .result-line { margin: 5px 0; }
+      .section-title { font-weight: bold; margin: 15px 0 5px 0; }
+      pre { white-space: pre-wrap; word-wrap: break-word; margin: 0; }
     </style>
   `);
   win.document.write('</head><body>');
@@ -291,33 +293,42 @@ function printSingleExam(exam) {
     ? "Teste de Sobrecarga Hídrica"
     : "Curva Tensional de Três Medidas";
 
-  win.document.write(`<h2>Resultado do Exame</h2>`);
+  win.document.write(`<h2>Resultado</h2>`);
   win.document.write(`<h3>${exameCompleto}</h3>`);
+
+  let firstTime = null;
+  if (exam.type === 'curva' && exam.measures.length > 0) {
+    const [h, m] = exam.measures[0].time.split(':').map(Number);
+    firstTime = new Date();
+    firstTime.setHours(h, m, 0, 0);
+  }
 
   exam.measures.forEach((m, i) => {
     let descricao = '';
 
     if (exam.type === 'tsh') {
-      if (i === 0) {
-        descricao = "Antes da ingestão de água";
-      } else {
-        descricao = `${i * 15} minutos após a ingestão de água`;
-      }
-    } else {
-      descricao = i === 0 ? "1ª Medida" : `Medida ${i + 1}`;
+      descricao = i === 0
+        ? "Antes da ingestão de água"
+        : `${i * 15} minutos após ingestão de água`;
+    } else if (exam.type === 'curva') {
+      const medidaTime = new Date(firstTime.getTime() + i * 3 * 60 * 60 * 1000);
+      const hh = medidaTime.getHours().toString().padStart(2, '0');
+      const mm = medidaTime.getMinutes().toString().padStart(2, '0');
+      descricao = `${i + 1}ª Medida (${hh}:${mm})`;
     }
 
-    win.document.write(`<div class="measure-title">${descricao}</div>`);
-    win.document.write(`<div class="block">Olho Direito: ${m.pioOD || '--'} mmHg | Olho Esquerdo: ${m.pioOE || '--'} mmHg</div>`);
+    win.document.write(`<div class="result-line"><strong>${descricao}:</strong> ${m.pioOD || '--'} mmHg | ${m.pioOE || '--'} mmHg</div>`);
   });
 
   const pq = exam.paquimetria;
   if (pq && (pq.od || pq.oe)) {
-    win.document.write(`<div class="block"><strong>Paquimetria:</strong> Olho Direito: ${pq.od || '--'} µm | Olho Esquerdo: ${pq.oe || '--'} µm</div>`);
+    win.document.write(`<div class="section-title">Paquimetria</div>`);
+    win.document.write(`<div class="result-line">${pq.od || '--'} µm | ${pq.oe || '--'} µm</div>`);
   }
 
   if (exam.observation && exam.observation.trim() !== "") {
-    win.document.write(`<div class="block"><strong>Segue em anexo:</strong><br><pre>${exam.observation}</pre></div>`);
+    win.document.write(`<div class="section-title">Segue em anexo:</div>`);
+    win.document.write(`<div class="block"><pre>${exam.observation}</pre></div>`);
   }
 
   win.document.write('</body></html>');
@@ -610,7 +621,7 @@ document.querySelector("button[onclick='printHistory()']").style.display = "none
 document.querySelector("button[onclick=\"exportToCSV('history')\"]").style.display = "none";
 document.querySelector("button[onclick=\"clearHistory('day')\"]").style.display = "none";
 
-// Mostrar Botões
+//Mostrar Botões
 
 //document.querySelector("button[onclick='printHistory()']").style.display = "inline-block";
 //document.querySelector("button[onclick=\"exportToCSV('history')\"]").style.display = "inline-block";
