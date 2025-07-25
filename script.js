@@ -343,7 +343,8 @@ function updateHistory() {
 
   history.forEach((exam, index) => {
     if (!exam.end) return;
-    const isToday = exam.date === today;
+    const isToday = exam.date === new Date().toISOString().split('T')[0];
+    
 
     const container = document.createElement('div');
     container.className = 'exam-item';
