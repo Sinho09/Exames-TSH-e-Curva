@@ -94,25 +94,30 @@
     <!-- 🔔 Mensagem Temporária -->
     <div id="message" class="message"></div>
 
-    <!-- 🔗 Firebase SDK -->
+    <!-- 🔗 Firebase SDK compat (Firestore) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <!-- ✅ Firebase Config e Inicialização -->
     <script>
       const firebaseConfig = {
-        apiKey: "AIzaSyAOLydsDYnbfpZkRsx0dcsToysIf_GPuPc",
-        authDomain: "tsh-curva-ioan.firebaseapp.com",
-        databaseURL: "https://tsh-curva-ioan-default-rtdb.firebaseio.com",
-        projectId: "tsh-curva-ioan",
-        storageBucket: "tsh-curva-ioan.firebasestorage.app",
-        messagingSenderId: "961298192170",
-        appId: "1:961298192170:web:d666ccb657073f9ab2f053",
-        measurementId: "G-Y16V6VY5M2"
+        apiKey: "AIzaSyDWVLB5bi3xP3L--whOkCVDJ3cjkML1tBA",
+        authDomain: "bancodedadosioan.firebaseapp.com",
+        projectId: "bancodedadosioan",
+        storageBucket: "bancodedadosioan.appspot.com",  <!-- corrigido .app para .app**spot.com** -->
+        messagingSenderId: "631722624287",
+        appId: "1:631722624287:web:d7d87829b17cdd98a3dc2a",
+        measurementId: "G-33124GT6JP"
       };
 
+      // Inicializar o Firebase
       firebase.initializeApp(firebaseConfig);
+
+      // Inicializar o Firestore
       const db = firebase.firestore();
     </script>
 
+    <!-- ✅ Seu script principal -->
     <script src="script.js"></script>
   </body>
 </html>
