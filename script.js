@@ -71,7 +71,7 @@ form.addEventListener('submit', function (e) {
   start: startTime,
   end: null,
   measures: [],
-  date: new Date().toISOString().split('T')[0],
+  date: formatDate(new Date()),,
   paquimetria: { od: '', oe: '' }
 };
 
