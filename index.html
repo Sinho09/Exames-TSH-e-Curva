@@ -1,123 +1,112 @@
-  <!DOCTYPE html>
-  <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Clínica de Olhos Adi Nascimento</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="container">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Controle de Exames</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-      <!-- 🔝 Cabeçalho -->
-      <header>
-        <img src="Ioan.png" alt="Logo da Clínica" class="logo" />
-        <div>
-          <h1>Clínica de Olhos Adi Nascimento</h1>
-          <h2>Gestão de Exames - TSH e Curva Tensional</h2>
-        </div>
-        <button id="theme-toggle" title="Tema claro/escuro">🌙</button>
-      </header>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+</head>
+<body>
 
-      <!-- 🗂️ Abas -->
-      <div class="tabs">
-        <button onclick="showTab('exames-dia')" class="tab-btn active">Exames do Dia</button>
-        <button onclick="showTab('historico-antigo')" class="tab-btn">Histórico Antigo</button>
-      </div>
+  <header>
+    <img src="Ioan.png" alt="Logo Instituto de Olhos">
+    <div class="titles">
+      <h1>Instituto de Olhos</h1>
+      <h2>Adi Nascimento</h2>
+    </div>
+    <button id="theme-toggle">🌙</button>
+  </header>
 
-      <!-- 🔷 Aba Exames do Dia -->
-      <div id="exames-dia" class="tab-content">
-        <form id="patient-form">
-          <input type="text" id="name" placeholder="Nome do Paciente" required />
-          <input type="date" id="dob" required />
-          <select id="operator" required>
-            <option value="">Operador</option>
-            <option value="Anderson">Anderson</option>
-            <option value="Diogenes">Diogenes</option>
-            <option value="Gabriely">Gaby</option>
-            <option value="Victor">Victor</option>
-          </select>
-          <select id="exam-type" required>
-            <option value="">Tipo de Exame</option>
-            <option value="tsh">TSH</option>
-            <option value="curva">Curva Tensional</option>
-          </select>
-          <textarea id="observation" placeholder="Observações (opcional)" rows="3"></textarea>
-          <button type="submit">Adicionar Paciente</button>
-        </form>
-
-        <div id="patients-list"></div>
-
-        <h3>
-  Histórico de Pacientes do Dia
-  <button id="toggle-day-history" class="toggle-btn">▲</button>
-</h3>
-       
-    <input type="text" id="day-history-search" class="fade-toggle" placeholder="🔍 Buscar por nome..." style="margin: 8px auto; max-width: 400px; padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px;">
-
-<div id="history-wrapper" class="fade-toggle">
-  <div id="history"></div>
-</div>
-        <div class="buttons">
-          <button onclick="printHistory()" class="print-btn" title="Imprimir Histórico do Dia">🖨️</button>
-          <button onclick="exportToCSV('history')" class="print-btn" title="Exportar Histórico do Dia">📥</button>
-          <button onclick="clearHistory('day')" class="print-btn danger" title="Limpar Histórico do Dia">🗑️</button>
-        </div>
-
-        <div id="history" class="collapsible"></div>
-      </div>
-
-      <!-- 🔸 Aba Histórico Antigo -->
-      <div id="historico-antigo" class="tab-content" style="display: none;">
-        <h3>Histórico de Pacientes de Outras Datas</h3>
-        <div class="buttons">
-          <button onclick="printOldHistory()" class="print-btn" title="Imprimir Histórico Antigo">🖨️</button>
-          <button onclick="exportToCSV('old-history')" class="print-btn" title="Exportar Histórico Antigo">📥</button>
-          <button onclick="clearHistory('all')" class="print-btn danger" title="Limpar Todo Histórico">🗑️</button>
-        </div>
-
-        <input type="text" id="old-history-search" placeholder="🔍 Buscar por nome...">
-        <div id="old-history" class="tab-content"></div>
-      </div>
+  <main>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('home')">Novo Exame</button>
+      <button class="tab-btn" onclick="showTab('history-wrapper')">Histórico do Dia</button>
+      <button class="tab-btn" onclick="showTab('old-history')">Histórico Antigo</button>
     </div>
 
-    <!-- 🔻 Rodapé -->
-    <footer class="custom-footer">
-      Made by Anderson Moura – Instituto de Olhos
-    </footer>
+    <!-- Novo Exame -->
+    <div id="home" class="tab-content">
+      <form id="patient-form">
 
-    <!-- 🔊 Alerta de Som -->
-    <audio id="alertSound">
-      <source src="alert.mp3" type="audio/mpeg" />
-    </audio>
+        <div class="form-row">
+          <input type="text" id="name" placeholder="Nome do Paciente" required>
+          <input type="date" id="dob" placeholder="Data de Nascimento" required>
+          <input list="operadores" id="operator" placeholder="Operador">
+          <datalist id="operadores">
+            <option value="Anderson">
+            <option value="Diógenes">
+            <option value="Gabriele">
+            <option value="Patrícia">
+            <option value="Vitor">
+          </datalist>
+          <select id="exam-type" required>
+            <option value="">Tipo de Exame</option>
+            <option value="tsh">Teste de Sobrecarga Hídrica</option>
+            <option value="curva">Curva Tensional de 3 Medidas</option>
+          </select>
+        </div>
 
-    <!-- 🔔 Mensagem Temporária -->
-    <div id="message" class="message"></div>
+        <div class="form-row full-width">
+          <textarea id="observation" placeholder="Observações (opcional)"></textarea>
+        </div>
 
-    <!-- 🔗 Firebase SDK compat (Firestore) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+        <div class="form-row">
+          <button type="submit">Adicionar Paciente</button>
+        </div>
+      </form>
 
-    <!-- ✅ Firebase Config e Inicialização -->
-    <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyDWVLB5bi3xP3L--whOkCVDJ3cjkML1tBA",
-        authDomain: "bancodedadosioan.firebaseapp.com",
-        projectId: "bancodedadosioan",
-        storageBucket: "bancodedadosioan.appspot.com",  <!-- corrigido .app para .app**spot.com** -->
-        messagingSenderId: "631722624287",
-        appId: "1:631722624287:web:d7d87829b17cdd98a3dc2a",
-        measurementId: "G-33124GT6JP"
-      };
+      <div id="patients-list"></div>
+    </div>
 
-      // Inicializar o Firebase
-      firebase.initializeApp(firebaseConfig);
+    <!-- Histórico do Dia -->
+    <div id="history-wrapper" class="tab-content" style="display:none;">
+      <div class="history-controls">
+        <input type="text" id="day-history-search" placeholder="Buscar exame do dia...">
+        <div class="button-row">
+          <button onclick="printHistory()">🖨️ Imprimir</button>
+          <button onclick="exportToCSV('history')">📄 CSV</button>
+          <button onclick="clearHistory('day')">🗑️ Limpar</button>
+        </div>
+      </div>
+      <div id="history" class="collapsible"></div>
+    </div>
 
-      // Inicializar o Firestore
-      const db = firebase.firestore();
-    </script>
+    <!-- Histórico Antigo -->
+    <div id="old-history" class="tab-content" style="display:none;">
+      <div class="history-controls">
+        <input type="text" id="old-history-search" placeholder="Buscar exame antigo...">
+        <div class="button-row">
+          <button onclick="printOldHistory()">🖨️ Imprimir</button>
+          <button onclick="exportToCSV('old-history')">📄 CSV</button>
+          <button onclick="clearHistory('old')">🗑️ Limpar</button>
+        </div>
+      </div>
+      <div class="collapsible"></div>
+    </div>
+  </main>
 
-    <!-- ✅ Seu script principal -->
-    <script src="script.js"></script>
-  </body>
+  <div id="message" class="message" style="display:none;"></div>
+
+  <audio id="alertSound" src="alert.mp3" preload="auto"></audio>
+
+  <script>
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDWVLB5bi3xP3L--whOkCVDJ3cjkML1tBA",
+      authDomain: "bancodedadosioan.firebaseapp.com",
+      projectId: "bancodedadosioan",
+      storageBucket: "bancodedadosioan.appspot.com",
+      messagingSenderId: "631722624287",
+      appId: "1:631722624287:web:d7d87829b17cdd98a3dc2a"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+
+  <script src="script.js"></script>
+
+</body>
 </html>
