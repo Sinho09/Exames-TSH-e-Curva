@@ -741,11 +741,4 @@ function clearHistory(tipo) {
   });
 }
 
-/* === Hide/Show dos botões (protege caso não existam) === */
-const sel = s => document.querySelector(s);
-if (sel("button[onclick='printOldHistory()']")) sel("button[onclick='printOldHistory()']").style.display = "none";
-if (sel("button[onclick=\"exportToCSV('old-history')\"]")) sel("button[onclick=\"exportToCSV('old-history')\"]").style.display = "none";
-if (sel("button[onclick=\"clearHistory('all')\"]")) sel("button[onclick=\"clearHistory('all')\"]").style.display = "none";
-if (sel("button[onclick='printHistory()']")) sel("button[onclick='printHistory()']").style.display = "none";
-if (sel("button[onclick=\"exportToCSV('history')\"]")) sel("button[onclick=\"exportToCSV('history')\"]").style.display = "none";
-if (sel("button[onclick=\"clearHistory('day')\"]")) sel("button[onclick=\"clearHistory('day')\"]").style.display = "none";
+/* === Fim do script === */
