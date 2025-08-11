@@ -47,6 +47,11 @@ header img.logo {
   height: 60px;
 }
 
+header .titles {
+  text-align: center;
+  flex: 1;
+}
+
 header h1 {
   font-size: 22px;
   margin: 0;
@@ -378,7 +383,11 @@ body.dark-mode .exam-item {
   box-shadow: 0 2px 5px rgba(255, 255, 255, 0.05);
 }
 
-header div {
-  text-align: center;
-  flex: 1;
+
+
+header img.logo {
+  width: 60px;
+  height: 60px;
 }
+
+
