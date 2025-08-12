@@ -1,15 +1,16 @@
-/* script.js — versão corrigida para salvar/ler corretamente no Firebase,
-   usar IDs únicos, datas ISO e conversão de Timestamp do Firestore. */
+/* script.js — versão com sincronização em tempo real via Firebase
+   para exames em andamento visíveis em diferentes computadores */
 
 /* === Referências ao DOM === */
 const form = document.getElementById('patient-form');
 const list = document.getElementById('patients-list');
-const historyDiv = document.getElementById('history');
-const oldHistoryDiv = document.getElementById('old-history');
+const historyDiv = document.getElementById('history-wrapper');
+const oldHistoryDiv = document.getElementById('old-history-wrapper');
 const alertSound = document.getElementById('alertSound');
 const themeBtn = document.getElementById('theme-toggle');
 const history = []; // array local de exames
 let alertTimeout = null; // variável para controlar o timeout do alerta
+let ongoingExamsListener = null; // listener para exames em andamento
 
 /* === Helpers para data/hora === */
 function formatTime(date) {
@@ -405,7 +406,7 @@ function printSingleExam(exam) {
   (exam.measures || []).forEach((m, i) => {
     let descricao = '';
     if (exam.type === 'tsh') {
-      descricao = i === 0 ? "Antes da ingestão de água" : `${i * 15} minutos após ingestão de água`;
+      descricao = i === 0 ? "Antes da ingestão de água" : `${i * 1} minutos após ingestão de água`;
     } else if (exam.type === 'curva') {
       if (firstTime) {
         const medidaTime = new Date(firstTime.getTime() + i * 3 * 60 * 60 * 1000);
