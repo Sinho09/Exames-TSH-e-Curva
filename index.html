@@ -2,12 +2,12 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Controle de Exames</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <title>Controle de Exames</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
 </head>
 <body>
 
@@ -20,49 +20,41 @@
     <button id="theme-toggle">🌙</button>
   </header>
 
-  <main>
+  <div class="container">
     <div class="tabs">
-      <button class="tab-btn active" onclick="showTab('home')">Novo Exame</button>
-      <button class="tab-btn" onclick="showTab('history-wrapper')">Histórico do Dia</button>
+      <button class="tab-btn active" onclick="showTab('new-exam')">Novo Exame</button>
+      <button class="tab-btn" onclick="showTab('history')">Histórico do Dia</button>
       <button class="tab-btn" onclick="showTab('old-history')">Histórico Antigo</button>
     </div>
 
     <!-- Novo Exame -->
-    <div id="home" class="tab-content">
+    <div id="new-exam" class="tab-content">
       <form id="patient-form">
-
         <div class="form-row">
           <input type="text" id="name" placeholder="Nome do Paciente" required>
-          <input type="date" id="dob" placeholder="Data de Nascimento" required>
-          <input list="operadores" id="operator" placeholder="Operador">
-          <datalist id="operadores">
-            <option value="Anderson">
-            <option value="Diógenes">
-            <option value="Gabriele">
-            <option value="Patrícia">
-            <option value="Vitor">
-          </datalist>
+          <input type="date" id="dob" required>
+          <input type="text" id="operator" placeholder="Operador">
           <select id="exam-type" required>
             <option value="">Tipo de Exame</option>
             <option value="tsh">Teste de Sobrecarga Hídrica</option>
             <option value="curva">Curva Tensional de 3 Medidas</option>
           </select>
         </div>
-
         <div class="form-row full-width">
           <textarea id="observation" placeholder="Observações (opcional)"></textarea>
         </div>
-
-        <div class="form-row">
-          <button type="submit">Adicionar Paciente</button>
-        </div>
+        <button type="submit">Adicionar Paciente</button>
       </form>
 
-      <div id="patients-list"></div>
+      <!-- Seção de exames em andamento - apenas na primeira aba -->
+      <div id="ongoing-exams-section" style="margin-top: 20px;">
+        <h3>Exames em Andamento</h3>
+        <div id="patients-list"></div>
+      </div>
     </div>
 
     <!-- Histórico do Dia -->
-    <div id="history-wrapper" class="tab-content" style="display:none;">
+    <div id="history" class="tab-content" style="display:none;">
       <div class="history-controls">
         <input type="text" id="day-history-search" placeholder="Buscar exame do dia...">
         <div class="button-row">
@@ -71,7 +63,8 @@
           <button onclick="clearHistory('day')">🗑️ Limpar</button>
         </div>
       </div>
-      <div id="history" class="collapsible"></div>
+      
+      <div id="history-wrapper" class="collapsible"></div>
     </div>
 
     <!-- Histórico Antigo -->
@@ -84,29 +77,16 @@
           <button onclick="clearHistory('old')">🗑️ Limpar</button>
         </div>
       </div>
-      <div class="collapsible"></div>
+      
+      <div id="old-history-wrapper" class="collapsible"></div>
     </div>
-  </main>
+  </div>
 
   <div id="message" class="message" style="display:none;"></div>
 
   <audio id="alertSound" src="alert.mp3" preload="auto"></audio>
 
-  <script>
-    // Configuração do Firebase
-    const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "bancodedadosioan.firebaseapp.com",
-      projectId: "bancodedadosioan",
-      storageBucket: "bancodedadosioan.appspot.com",
-      messagingSenderId: "SEU_MESSAGING_ID",
-      appId: "SEU_APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
-
   <script src="script.js"></script>
-
 </body>
 </html>
+
