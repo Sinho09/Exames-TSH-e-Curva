@@ -1,0 +1,378 @@
+:root {
+  --azul-escuro: #073f6a;
+  --azul-medio: #027cc6;
+  --azul-claro: #a4cfff;
+  --fundo-claro: #f8f9fa;
+  --fundo-escuro: #0d1117;
+  --texto-escuro: #f0f0f0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: var(--fundo-claro);
+  color: #222;
+  margin: 0;
+  padding: 20px;
+  transition: background 0.3s, color 0.3s;
+}
+
+body.dark-mode {
+  background-color: var(--fundo-escuro);
+  color: var(--texto-escuro);
+}
+
+.container {
+  max-width: 1280px;
+  margin: auto;
+  background: white;
+  padding: 20px 40px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+body.dark-mode .container {
+  background: #161b22;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+header img.logo {
+  width: 60px;
+  height: 60px;
+}
+
+header .titles {
+  text-align: center;
+  flex: 1;
+}
+
+header h1 {
+  font-size: 22px;
+  margin: 0;
+  color: var(--azul-escuro);
+}
+
+header h2 {
+  font-size: 14px;
+  margin: 0;
+  color: var(--azul-medio);
+}
+
+#theme-toggle {
+  font-size: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--azul-escuro);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.form-row.full-width {
+  flex-direction: column;
+}
+
+input, select, textarea {
+  padding: 12px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.form-row input, .form-row select {
+  flex: 1;
+  min-width: 200px;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 80px;
+  box-sizing: border-box;
+}
+
+button, .tab-btn, .print-btn {
+  padding: 8px 30px;
+  background-color: var(--azul-medio);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+button:hover, .tab-btn:hover, .tab-btn.active {
+  background-color: var(--azul-escuro);
+}
+
+.print-btn {
+  background-color: #28a745;
+}
+.print-btn:hover {
+  background-color: #1e7e34;
+}
+.print-btn.danger {
+  background-color: #dc3545;
+}
+.print-btn.danger:hover {
+  background-color: #a71d2a;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+#patients-list,
+#history,
+#old-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.patient {
+  background: var(--azul-claro);
+  padding: 10px;
+  border-radius: 8px;
+  width: 300px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.patient .timer {
+  margin-top: 5px;
+  font-size: 13px;
+}
+
+input.pio {
+  width: 40px;
+  text-align: center;
+  font-size: 13px;
+  padding: 3px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+
+.pio-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+  background-color: #1c1f26;
+  color: #eee;
+  border: 1px solid #444;
+}
+
+.exam-item {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: 300px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  position: relative;
+}
+
+.exam-item button {
+  margin-top: 4px;
+  margin-right: 4px;
+}
+
+.toggle-btn {
+  cursor: pointer;
+  background-color: var(--azul-medio);
+  color: white;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.toggle-btn:hover {
+  background-color: var(--azul-escuro);
+}
+
+.history-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.history-controls input {
+  width: 100%;
+  max-width: 400px;
+  padding: 12px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Campo de observação editável no histórico */
+.observacao-edit {
+  width: 100%;
+  margin-top: 6px;
+  font-size: 13px;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  resize: vertical;
+}
+
+/* Campos paquimetria lado a lado */
+.paquimetria-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.paquimetria-group label {
+  font-size: 13px;
+}
+
+.message {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--azul-medio);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  display: none;
+  z-index: 1000;
+  font-weight: bold;
+  text-align: center;
+  font-size: 14px;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+.blink {
+  animation: blink 1s infinite;
+}
+
+.custom-footer {
+  text-align: center;
+  font-size: 13px;
+  margin-top: 40px;
+  color: rgba(0, 0, 0, 0.3);
+  font-style: italic;
+}
+
+#history-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  body, .container {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+
+  .tabs, .toggle-btn, #message, form, #patients-list, .print-btn, audio, #theme-toggle {
+    display: none !important;
+  }
+
+  .exam-item, .patient {
+    background: white !important;
+    border: 1px solid black !important;
+    padding: 6px !important;
+    page-break-inside: avoid;
+  }
+
+  pre {
+    white-space: pre-wrap;
+    font-size: 11px;
+  }
+}
+
+.fade-toggle {
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  opacity: 1;
+  max-height: 1000px;
+}
+
+.fade-toggle.hidden {
+  opacity: 0;
+  max-height: 0;
+}
+
+#day-history-search {
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+  display: block;
+  opacity: 1;
+  max-height: 40px;
+}
+
+#day-history-search.hidden {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+}
+
+body.dark-mode .patient {
+  background: #1c1f26;
+  color: var(--texto-escuro);
+}
+
+body.dark-mode .exam-item {
+  background: #1c1f26;
+  color: var(--texto-escuro);
+  border: 1px solid #333;
+  box-shadow: 0 2px 5px rgba(255, 255, 255, 0.05);
+}
+

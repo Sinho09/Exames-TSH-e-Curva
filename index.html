@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Exames</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+
+  <header>
+    <img src="Ioan.png" alt="Logo Instituto de Olhos" class="logo">
+    <div class="titles">
+      <h1>Instituto de Olhos</h1>
+      <h2>Adi Nascimento</h2>
+    </div>
+    <button id="theme-toggle">🌙</button>
+  </header>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('new-exam')">Novo Exame</button>
+      <button class="tab-btn" onclick="showTab('history')">Histórico do Dia</button>
+      <button class="tab-btn" onclick="showTab('old-history')">Histórico Antigo</button>
+    </div>
+
+    <!-- Novo Exame -->
+    <div id="new-exam" class="tab-content">
+      <form id="patient-form">
+        <div class="form-row">
+          <input type="text" id="name" placeholder="Nome do Paciente" required>
+          <input type="date" id="dob" required>
+          <input type="text" id="operator" placeholder="Operador">
+          <select id="exam-type" required>
+            <option value="">Tipo de Exame</option>
+            <option value="tsh">Teste de Sobrecarga Hídrica</option>
+            <option value="curva">Curva Tensional de 3 Medidas</option>
+          </select>
+        </div>
+        <div class="form-row full-width">
+          <textarea id="observation" placeholder="Observações (opcional)"></textarea>
+        </div>
+        <button type="submit">Adicionar Paciente</button>
+      </form>
+
+      <!-- Seção de exames em andamento - apenas na primeira aba -->
+      <div id="ongoing-exams-section" style="margin-top: 20px;">
+        <h3>Exames em Andamento</h3>
+        <div id="patients-list"></div>
+      </div>
+    </div>
+
+    <!-- Histórico do Dia -->
+    <div id="history" class="tab-content" style="display:none;">
+      <div class="history-controls">
+        <input type="text" id="day-history-search" placeholder="Buscar exame do dia...">
+        <div class="button-row">
+          <button onclick="printHistory()">🖨️ Imprimir</button>
+          <button onclick="exportToCSV('history')">📄 CSV</button>
+          <button onclick="clearHistory('day')">🗑️ Limpar</button>
+        </div>
+      </div>
+      
+      <div id="history-wrapper" class="collapsible"></div>
+    </div>
+
+    <!-- Histórico Antigo -->
+    <div id="old-history" class="tab-content" style="display:none;">
+      <div class="history-controls">
+        <input type="text" id="old-history-search" placeholder="Buscar exame antigo...">
+        <div class="button-row">
+          <button onclick="printOldHistory()">🖨️ Imprimir</button>
+          <button onclick="exportToCSV('old-history')">📄 CSV</button>
+          <button onclick="clearHistory('old')">🗑️ Limpar</button>
+        </div>
+      </div>
+      
+      <div id="old-history-wrapper" class="collapsible"></div>
+    </div>
+  </div>
+
+  <div id="message" class="message" style="display:none;"></div>
+
+  <audio id="alertSound" src="alert.mp3" preload="auto"></audio>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
