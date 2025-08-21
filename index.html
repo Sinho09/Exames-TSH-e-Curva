@@ -84,7 +84,10 @@
 
   <div id="message" class="message" style="display:none;"></div>
 
-  <audio id="alertSound" src="alert.mp3" preload="auto"></audio>
+  <audio id="alertSound" preload="auto">
+    <source src="alert.mp3" type="audio/mpeg">
+    Seu navegador não suporta o elemento de áudio.
+  </audio>
 
   <script src="script.js"></script>
 </body>

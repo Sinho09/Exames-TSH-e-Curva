@@ -364,6 +364,24 @@ body.dark-mode select {
   overflow: hidden;
 }
 
+/* Animação de abertura e fechamento dos detalhes dos exames */
+.exam-detail {
+  overflow: hidden;
+  transition: max-height 0.4s ease-out, opacity 0.3s ease-out;
+  max-height: 0;
+  opacity: 0;
+}
+
+.exam-detail.open {
+  max-height: 500px; /* Altura máxima suficiente para o conteúdo */
+  opacity: 1;
+}
+
+.exam-detail.closing {
+  max-height: 0;
+  opacity: 0;
+}
+
 body.dark-mode .patient {
   background: #1c1f26;
   color: var(--texto-escuro);

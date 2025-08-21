@@ -17,7 +17,8 @@ Sistema web para controle e gerenciamento de exames oftalmológicos, com integra
 - ✅ Cadastro de novos pacientes
 - ✅ Dois tipos de exame: TSH e Curva Tensional
 - ✅ Cronômetros automáticos para medidas
-- ✅ Alertas sonoros e visuais
+- ✅ **Alertas sonoros de 30 segundos quando cronômetro chega a zero**
+- ✅ **Parada do alarme ao clicar no card do paciente**
 - ✅ Campos para PIO (Pressão Intraocular)
 - ✅ Paquimetria editável
 - ✅ Observações personalizáveis
@@ -25,7 +26,9 @@ Sistema web para controle e gerenciamento de exames oftalmológicos, com integra
 ### 📈 Histórico e Relatórios
 - ✅ **Histórico do Dia**: Exames do dia atual
 - ✅ **Histórico Antigo**: Exames de dias anteriores
+- ✅ **Animação suave de abertura/fechamento dos detalhes**
 - ✅ Busca por nome, tipo de exame ou operador
+- ✅ **Impressão sem informação do operador (removida)**
 - ✅ Impressão individual de exames (formato A5)
 - ✅ Impressão em lote (formato A4)
 - ✅ Exportação para CSV
@@ -36,7 +39,7 @@ Sistema web para controle e gerenciamento de exames oftalmológicos, com integra
 - ✅ Modo escuro/claro
 - ✅ Logo personalizado
 - ✅ Navegação por abas
-- ✅ Feedback visual para usuário
+- ✅ **Animações suaves e feedback visual**
 
 ## 🚀 Como Usar
 

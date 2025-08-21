@@ -12,6 +12,22 @@ const history = []; // array local de exames
 let alertTimeout = null; // variável para controlar o timeout do alerta
 let ongoingExamsListener = null; // listener para exames em andamento
 
+/* === Função para parar o alarme === */
+function stopAlarm() {
+  if (alertSound) {
+    alertSound.pause();
+    alertSound.currentTime = 0;
+  }
+  if (alertTimeout) {
+    clearTimeout(alertTimeout);
+    alertTimeout = null;
+  }
+  // Remove a animação de piscar de todos os cards
+  document.querySelectorAll('.patient.blink').forEach(card => {
+    card.classList.remove('blink');
+  });
+}
+
 /* === Helpers para data/hora === */
 function formatTime(date) {
   if (!date) return '--:--';
@@ -114,6 +130,11 @@ form.addEventListener('submit', function (e) {
     <button data-action="start" class="start-btn">Iniciar Primeira Medida</button>
     <div class="timer-container"></div>
   `;
+
+  // Adicionar evento de clique no card para parar o alarme
+  patientDiv.addEventListener('click', () => {
+    stopAlarm();
+  });
 
   list.appendChild(patientDiv);
   history.push(patientData);
@@ -232,14 +253,7 @@ function createSequentialTimers(count, parent, container, patientId, minutes) {
       }
 
       // Para o alerta sonoro imediatamente
-      if (alertSound) {
-        alertSound.pause();
-        alertSound.currentTime = 0;
-      }
-      if (alertTimeout) {
-        clearTimeout(alertTimeout);
-        alertTimeout = null;
-      }
+      stopAlarm();
 
       confirmBtn.remove();
       countdownSpan.textContent = "✅ Medida confirmada";
@@ -316,17 +330,13 @@ function startCountdown(target, displayEl, statusArray, index, card) {
       try { 
         if (alertSound) {
           alertSound.loop = true; // faz o som repetir
-          alertSound.play(); 
+          alertSound.volume = 0.7; // ajusta o volume
+          alertSound.play().catch(e => console.log("Erro ao reproduzir som:", e)); 
         }
         
         // Para o alerta automaticamente após 30 segundos
         alertTimeout = setTimeout(() => {
-          if (alertSound) {
-            alertSound.pause();
-            alertSound.currentTime = 0;
-          }
-          card.classList.remove('blink');
-          alertTimeout = null;
+          stopAlarm();
         }, 30000); // 30 segundos
       } catch (e) {
         console.log("Erro ao reproduzir som:", e);
@@ -465,7 +475,6 @@ function printSingleExam(exam) {
 
   win.document.write(`<div class="block"><strong>Nome:</strong> ${exam.name}</div>`);
   win.document.write(`<div class="block"><strong>Data de Nascimento:</strong> ${formatDateDisplay(exam.dob)} (${calculateAge(exam.dob)} anos)</div>`);
-  win.document.write(`<div class="block"><strong>Operador:</strong> ${exam.operator}</div>`);
   win.document.write(`<div class="block"><strong>Data do Exame:</strong> ${exam.dateDisplay || formatDateDisplay(exam.start)}</div>`);
 
   const exameCompleto = exam.type === 'tsh'
@@ -557,7 +566,7 @@ function updateHistory() {
     };
 
     const detail = document.createElement('div');
-    detail.style.display = 'none';
+    detail.className = 'exam-detail';
     detail.innerHTML = `
       ${ (exam.measures || []).map((m, i) => {
         const label = exam.type === 'tsh' && i === 0 ? '1ª Medida (Sem Água)' : m.measure;
@@ -566,9 +575,24 @@ function updateHistory() {
     `;
 
     toggle.onclick = () => {
-      const isHidden = detail.style.display === 'none';
-      detail.style.display = isHidden ? 'block' : 'none';
-      toggle.textContent = isHidden ? '▲' : '▼';
+      const isOpen = detail.classList.contains('open');
+      
+      if (isOpen) {
+        // Fechando
+        detail.classList.remove('open');
+        detail.classList.add('closing');
+        toggle.textContent = '▼';
+        
+        // Remove a classe closing após a animação
+        setTimeout(() => {
+          detail.classList.remove('closing');
+        }, 400);
+      } else {
+        // Abrindo
+        detail.classList.remove('closing');
+        detail.classList.add('open');
+        toggle.textContent = '▲';
+      }
     };
 
     // observações editáveis
@@ -655,7 +679,6 @@ function printMultipleExams(exams, title) {
     win.document.write(`<div class="block"><strong>Data de Nascimento:</strong> ${formatDateDisplay(exam.dob)} (${calculateAge(exam.dob)} anos)</div>`);
     win.document.write(`<div class="block"><strong>Data do Exame:</strong> ${exam.dateDisplay || exam.dateISO}</div>`);
     win.document.write(`<div class="block"><strong>Tipo de Exame:</strong> ${exam.type.toUpperCase()}</div>`);
-    win.document.write(`<div class="block"><strong>Operador:</strong> ${exam.operator}</div>`);
     win.document.write(`<div class="block"><strong>Início:</strong> ${formatTime(exam.start)} | <strong>Fim:</strong> ${formatTime(exam.end)}</div>`);
     win.document.write(`<div class="block"><strong>Medidas:</strong><br>`);
     (exam.measures || []).forEach((m, i) => {
