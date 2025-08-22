@@ -8,13 +8,15 @@ Sistema web para controle e gerenciamento de exames oftalmológicos, com integra
 
 ### 🔥 Integração Firebase
 - ✅ Conexão completa com Firestore Database
+- ✅ **Sincronização em tempo real de exames em andamento**
 - ✅ Salvamento automático de exames finalizados
 - ✅ Carregamento automático do histórico ao iniciar
-- ✅ Sincronização em tempo real
+- ✅ **Exames em processo visíveis em múltiplos computadores**
 - ✅ Backup seguro na nuvem
 
 ### 📊 Gestão de Exames
 - ✅ Cadastro de novos pacientes
+- ✅ **Seleção de operadores (Anderson, Diógenes, Gabriely, Patrícia, Victor)**
 - ✅ Dois tipos de exame: TSH e Curva Tensional
 - ✅ Cronômetros automáticos para medidas
 - ✅ **Alertas sonoros de 30 segundos quando cronômetro chega a zero**
@@ -28,7 +30,10 @@ Sistema web para controle e gerenciamento de exames oftalmológicos, com integra
 - ✅ **Histórico Antigo**: Exames de dias anteriores
 - ✅ **Animação suave de abertura/fechamento dos detalhes**
 - ✅ Busca por nome, tipo de exame ou operador
-- ✅ **Impressão sem informação do operador (removida)**
+- ✅ **Impressão aprimorada:**
+  - ✅ **Sem informação do operador**
+  - ✅ **"mmHg" após resultados de PIO**
+  - ✅ **"Olho Direito" e "Olho Esquerdo" na paquimetria**
 - ✅ Impressão individual de exames (formato A5)
 - ✅ Impressão em lote (formato A4)
 - ✅ Exportação para CSV
@@ -40,6 +45,7 @@ Sistema web para controle e gerenciamento de exames oftalmológicos, com integra
 - ✅ Logo personalizado
 - ✅ Navegação por abas
 - ✅ **Animações suaves e feedback visual**
+- ✅ **Campo de seleção para operadores**
 
 ## 🚀 Como Usar
 

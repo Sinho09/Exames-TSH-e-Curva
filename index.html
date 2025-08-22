@@ -33,7 +33,14 @@
         <div class="form-row">
           <input type="text" id="name" placeholder="Nome do Paciente" required>
           <input type="date" id="dob" required>
-          <input type="text" id="operator" placeholder="Operador">
+          <select id="operator" required>
+            <option value="">Selecione o Operador</option>
+            <option value="Anderson">Anderson</option>
+            <option value="Diógenes">Diógenes</option>
+            <option value="Gabriely">Gabriely</option>
+            <option value="Patrícia">Patrícia</option>
+            <option value="Victor">Victor</option>
+          </select>
           <select id="exam-type" required>
             <option value="">Tipo de Exame</option>
             <option value="tsh">Teste de Sobrecarga Hídrica</option>

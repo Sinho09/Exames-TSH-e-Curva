@@ -138,6 +138,10 @@ form.addEventListener('submit', function (e) {
 
   list.appendChild(patientDiv);
   history.push(patientData);
+  
+  // Salvar exame em andamento no Firebase imediatamente
+  saveToFirebase(patientData);
+  
   form.reset();
 
   // ligar evento do botão de start (delegação simples)
@@ -413,8 +417,11 @@ function loadFromFirebase() {
   
   console.log("Carregando dados do Firebase...");
   
-  db.collection("exames").get().then(snapshot => {
+  // Listener em tempo real para sincronização
+  db.collection("exames").onSnapshot(snapshot => {
     history.length = 0;
+    list.innerHTML = ''; // Limpar exames em andamento
+    
     console.log("Documentos encontrados:", snapshot.size);
     
     snapshot.forEach(doc => {
@@ -443,15 +450,88 @@ function loadFromFirebase() {
       
       data.id = doc.id; // garante que temos id do doc
       history.push(data);
+      
+      // Se o exame não está finalizado, recriar o card em andamento
+      if (!data.end) {
+        recreateOngoingExam(data);
+      }
     });
     
     console.log("Exames carregados:", history.length);
     updateHistory();
     showMessage(`${history.length} exames carregados do Firebase`);
-  }).catch(err => {
+  }, err => {
     console.error("Erro ao carregar do Firebase:", err);
     showMessage("Erro ao carregar dados do Firebase: " + err.message);
   });
+}
+
+/* === Recriar exame em andamento === */
+function recreateOngoingExam(examData) {
+  // Verificar se o card já existe para evitar duplicatas
+  const existingCard = document.querySelector(`.patient[data-id="${examData.id}"]`);
+  if (existingCard) return;
+  
+  const patientDiv = document.createElement('div');
+  patientDiv.classList.add('patient');
+  patientDiv.setAttribute('data-id', examData.id);
+  
+  patientDiv.innerHTML = `
+    <strong>${examData.name}</strong> (${examData.type.toUpperCase()}) - ${calculateAge(examData.dob)} anos<br>
+    Nasc: ${examData.dob} | Operador: ${examData.operator}<br><br>
+    <div class="timer-container"></div>
+  `;
+  
+  // Adicionar evento de clique no card para parar o alarme
+  patientDiv.addEventListener('click', () => {
+    stopAlarm();
+  });
+  
+  list.appendChild(patientDiv);
+  
+  // Recriar os timers baseado nas medidas existentes
+  const timersContainer = patientDiv.querySelector('.timer-container');
+  
+  if (examData.measures && examData.measures.length > 0) {
+    examData.measures.forEach((measure, index) => {
+      const timerDiv = document.createElement('div');
+      timerDiv.classList.add('timer');
+      timerDiv.innerHTML = `<strong>${measure.measure}:</strong> ${measure.time} - ✅ Medida confirmada`;
+      
+      if (measure.pioOD || measure.pioOE) {
+        const pioGroup = document.createElement('div');
+        pioGroup.className = 'pio-group';
+        
+        const pioOD = createInput('PIO OD');
+        const pioOE = createInput('PIO OE');
+        pioOD.value = measure.pioOD || '';
+        pioOE.value = measure.pioOE || '';
+        
+        pioGroup.appendChild(pioOD);
+        pioGroup.appendChild(pioOE);
+        timerDiv.appendChild(pioGroup);
+      }
+      
+      timersContainer.appendChild(timerDiv);
+    });
+    
+    // Se ainda há medidas pendentes, adicionar botão de finalizar
+    const expectedMeasures = examData.type === 'tsh' ? 4 : 3;
+    if (examData.measures.length >= expectedMeasures) {
+      const finalizeBtn = document.createElement('button');
+      finalizeBtn.textContent = 'Finalizar Paciente';
+      finalizeBtn.addEventListener('click', () => {
+        const idx = history.findIndex(h => h.id === examData.id);
+        if (idx !== -1) {
+          history[idx].end = new Date();
+          patientDiv.remove();
+          updateHistory();
+          saveToFirebase(history[idx]);
+        }
+      });
+      patientDiv.appendChild(finalizeBtn);
+    }
+  }
 }
 
 /* === Impressão de um exame (A5) === */
@@ -508,13 +588,18 @@ function printSingleExam(exam) {
         descricao = `${i + 1}ª Medida (${m.time || '--:--'})`;
       }
     }
-    win.document.write(`<div class="result-line"><strong>${descricao}</strong><br>${m.pioOD || '--'} | ${m.pioOE || '--'}</div>`);
+    
+    // Adicionar mmHg para resultados de PIO
+    const pioOD = m.pioOD ? `${m.pioOD} mmHg` : '--';
+    const pioOE = m.pioOE ? `${m.pioOE} mmHg` : '--';
+    
+    win.document.write(`<div class="result-line"><strong>${descricao}</strong><br>${pioOD} | ${pioOE}</div>`);
   });
 
   const pq = exam.paquimetria;
   if (pq && (pq.od || pq.oe)) {
     win.document.write(`<div class="section-title">Paquimetria</div>`);
-    win.document.write(`<div class="result-line">${pq.od || '--'} µm | ${pq.oe || '--'} µm</div>`);
+    win.document.write(`<div class="result-line">Olho Direito: ${pq.od || '--'} µm | Olho Esquerdo: ${pq.oe || '--'} µm</div>`);
   }
 
   if (exam.observation && exam.observation.trim() !== "") {
