@@ -1,5 +1,6 @@
 /* script.js — versão com sincronização em tempo real via Firebase
-   para exames em andamento visíveis em diferentes computadores */
+   para exames em andamento visíveis em diferentes computadores (somente leitura)
+   e fluxo de paquimetria para exames concluídos */
 
 /* === Referências ao DOM === */
 const form = document.getElementById('patient-form');
@@ -11,6 +12,8 @@ const themeBtn = document.getElementById('theme-toggle');
 const history = []; // array local de exames
 let alertTimeout = null; // variável para controlar o timeout do alerta
 let ongoingExamsListener = null; // listener para exames em andamento
+let currentPage = 1;
+const itemsPerPage = 10;
 
 /* === Função para parar o alarme === */
 function stopAlarm() {
@@ -70,6 +73,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Aguardar um pouco para garantir que o Firebase foi inicializado
   setTimeout(() => {
     loadFromFirebase();
+    setupOngoingExamsListener();
   }, 1000);
 });
 
@@ -97,10 +101,15 @@ form.addEventListener('submit', function (e) {
   e.preventDefault();
   const name = document.getElementById('name').value.trim();
   const dob = document.getElementById('dob').value;
-  const operator = document.getElementById('operator').value || "Anderson";
+  const operator = document.getElementById('operator').value;
   const type = document.getElementById('exam-type').value;
   const observation = document.getElementById('observation')?.value || '';
   const startTime = new Date();
+
+  if (!operator) {
+    showMessage("Por favor, selecione um operador.");
+    return;
+  }
 
   // ID único local (usamos como doc id no Firestore)
   const id = Date.now().toString();
@@ -117,7 +126,8 @@ form.addEventListener('submit', function (e) {
     measures: [],
     dateISO: toISODate(startTime),       // YYYY-MM-DD para lógica
     dateDisplay: formatDateDisplay(startTime),
-    paquimetria: { od: '', oe: '' }
+    paquimetria: { od: '', oe: '' },
+    status: 'ongoing' // Status para identificar exames em andamento
   };
 
   // Cria o card do paciente no DOM com data-id
@@ -139,7 +149,7 @@ form.addEventListener('submit', function (e) {
   list.appendChild(patientDiv);
   history.push(patientData);
   
-  // Salvar exame em andamento no Firebase imediatamente
+  // Salvar no Firebase imediatamente como exame em andamento
   saveToFirebase(patientData);
   
   form.reset();
@@ -148,6 +158,81 @@ form.addEventListener('submit', function (e) {
   const startBtn = patientDiv.querySelector('button[data-action="start"]');
   startBtn.addEventListener('click', () => startInitial(type, startBtn, id));
 });
+
+/* === Listener para exames em andamento === */
+function setupOngoingExamsListener() {
+  if (!db) {
+    console.error("Firebase não inicializado para listener");
+    return;
+  }
+
+  // Escutar mudanças em tempo real nos exames em andamento
+  ongoingExamsListener = db.collection("exames")
+    .where("status", "==", "ongoing")
+    .onSnapshot((snapshot) => {
+      console.log("Mudanças detectadas nos exames em andamento");
+      
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added" || change.type === "modified") {
+          const data = change.doc.data();
+          data.id = change.doc.id;
+          
+          // Converter Timestamps para Date
+          if (data.start && typeof data.start.toDate === 'function') {
+            data.start = data.start.toDate();
+          }
+          if (data.end && typeof data.end.toDate === 'function') {
+            data.end = data.end.toDate();
+          }
+          
+          // Verificar se já existe no DOM (evitar duplicatas)
+          const existingCard = document.querySelector(`.patient[data-id="${data.id}"]`);
+          if (!existingCard) {
+            // Verificar se não é um exame criado localmente
+            const localExam = history.find(h => h.id === data.id);
+            if (!localExam) {
+              createReadOnlyExamCard(data);
+            }
+          }
+        } else if (change.type === "removed") {
+          // Remover card se exame foi finalizado ou removido
+          const cardToRemove = document.querySelector(`.patient[data-id="${change.doc.id}"]`);
+          if (cardToRemove && cardToRemove.classList.contains('readonly')) {
+            cardToRemove.remove();
+          }
+        }
+      });
+    }, (error) => {
+      console.error("Erro no listener de exames em andamento:", error);
+    });
+}
+
+/* === Criar card somente leitura para exames de outros computadores === */
+function createReadOnlyExamCard(examData) {
+  const patientDiv = document.createElement('div');
+  patientDiv.classList.add('patient', 'readonly');
+  patientDiv.setAttribute('data-id', examData.id);
+  
+  let statusText = "⏳ Aguardando início";
+  let measureInfo = "";
+  
+  // Mostrar informações das medidas já realizadas
+  if (examData.measures && examData.measures.length > 0) {
+    const lastMeasure = examData.measures[examData.measures.length - 1];
+    measureInfo = `<br><small>Última medida: ${lastMeasure.measure} (${lastMeasure.time})</small>`;
+  }
+  
+  patientDiv.innerHTML = `
+    <div style="opacity: 0.8;">
+      <strong>${examData.name}</strong> (${examData.type.toUpperCase()}) - ${calculateAge(examData.dob)} anos<br>
+      Nasc: ${examData.dob} | Operador: ${examData.operator}<br>
+      <small style="color: #666; font-style: italic;">📱 Exame em andamento em outro computador</small>
+      ${measureInfo}
+    </div>
+  `;
+
+  list.appendChild(patientDiv);
+}
 
 /* === criação de input PIO (OD/OE) === */
 function createInput(placeholder) {
@@ -300,6 +385,7 @@ function createSequentialTimers(count, parent, container, patientId, minutes) {
         finalizeBtn.textContent = 'Finalizar Paciente';
         finalizeBtn.addEventListener('click', () => {
           history[idx].end = new Date();
+          history[idx].status = 'completed'; // Marcar como concluído
           // remover card do DOM
           const card = document.querySelector(`.patient[data-id="${patientId}"]`);
           if (card) card.remove();
@@ -417,11 +503,8 @@ function loadFromFirebase() {
   
   console.log("Carregando dados do Firebase...");
   
-  // Listener em tempo real para sincronização
-  db.collection("exames").onSnapshot(snapshot => {
+  db.collection("exames").get().then(snapshot => {
     history.length = 0;
-    list.innerHTML = ''; // Limpar exames em andamento
-    
     console.log("Documentos encontrados:", snapshot.size);
     
     snapshot.forEach(doc => {
@@ -439,6 +522,7 @@ function loadFromFirebase() {
       // garantir campos mínimos
       if (!data.paquimetria) data.paquimetria = { od: '', oe: '' };
       if (!data.measures) data.measures = [];
+      if (!data.status) data.status = data.end ? 'completed' : 'ongoing';
       
       // preencher dateISO / dateDisplay caso faltem
       if (!data.dateISO) {
@@ -450,88 +534,111 @@ function loadFromFirebase() {
       
       data.id = doc.id; // garante que temos id do doc
       history.push(data);
-      
-      // Se o exame não está finalizado, recriar o card em andamento
-      if (!data.end) {
-        recreateOngoingExam(data);
-      }
     });
     
     console.log("Exames carregados:", history.length);
     updateHistory();
     showMessage(`${history.length} exames carregados do Firebase`);
-  }, err => {
+  }).catch(err => {
     console.error("Erro ao carregar do Firebase:", err);
     showMessage("Erro ao carregar dados do Firebase: " + err.message);
   });
 }
 
-/* === Recriar exame em andamento === */
-function recreateOngoingExam(examData) {
-  // Verificar se o card já existe para evitar duplicatas
-  const existingCard = document.querySelector(`.patient[data-id="${examData.id}"]`);
-  if (existingCard) return;
+/* === Fluxo de paquimetria para exames concluídos === */
+function createPaquimetriaFlow(exam, container) {
+  const flowDiv = document.createElement('div');
+  flowDiv.className = 'paquimetria-flow';
   
-  const patientDiv = document.createElement('div');
-  patientDiv.classList.add('patient');
-  patientDiv.setAttribute('data-id', examData.id);
+  // Campo OD
+  const odStep = document.createElement('div');
+  odStep.className = 'paquimetria-step';
+  const odLabel = document.createElement('label');
+  odLabel.textContent = 'Paquimetria OD:';
+  const odInput = document.createElement('input');
+  odInput.type = 'number';
+  odInput.value = exam.paquimetria?.od || '';
+  odInput.maxLength = 3;
+  odInput.placeholder = '000';
   
-  patientDiv.innerHTML = `
-    <strong>${examData.name}</strong> (${examData.type.toUpperCase()}) - ${calculateAge(examData.dob)} anos<br>
-    Nasc: ${examData.dob} | Operador: ${examData.operator}<br><br>
-    <div class="timer-container"></div>
-  `;
+  odStep.appendChild(odLabel);
+  odStep.appendChild(odInput);
   
-  // Adicionar evento de clique no card para parar o alarme
-  patientDiv.addEventListener('click', () => {
-    stopAlarm();
+  // Campo OE
+  const oeStep = document.createElement('div');
+  oeStep.className = 'paquimetria-step';
+  const oeLabel = document.createElement('label');
+  oeLabel.textContent = 'Paquimetria OE:';
+  const oeInput = document.createElement('input');
+  oeInput.type = 'number';
+  oeInput.value = exam.paquimetria?.oe || '';
+  oeInput.maxLength = 3;
+  oeInput.placeholder = '000';
+  
+  oeStep.appendChild(oeLabel);
+  oeStep.appendChild(oeInput);
+  
+  // Campo Observação
+  const obsStep = document.createElement('div');
+  obsStep.className = 'paquimetria-step';
+  const obsLabel = document.createElement('label');
+  obsLabel.textContent = 'Observações:';
+  const obsTextarea = document.createElement('textarea');
+  obsTextarea.value = exam.observation || '';
+  obsTextarea.placeholder = 'Digite observações...';
+  
+  obsStep.appendChild(obsLabel);
+  obsStep.appendChild(obsTextarea);
+  
+  flowDiv.appendChild(odStep);
+  flowDiv.appendChild(oeStep);
+  flowDiv.appendChild(obsStep);
+  
+  // Lógica de navegação automática
+  odInput.addEventListener('input', (e) => {
+    if (e.target.value.length === 3) {
+      oeInput.focus();
+    }
   });
   
-  list.appendChild(patientDiv);
+  oeInput.addEventListener('input', (e) => {
+    if (e.target.value.length === 3) {
+      obsTextarea.focus();
+    }
+  });
   
-  // Recriar os timers baseado nas medidas existentes
-  const timersContainer = patientDiv.querySelector('.timer-container');
-  
-  if (examData.measures && examData.measures.length > 0) {
-    examData.measures.forEach((measure, index) => {
-      const timerDiv = document.createElement('div');
-      timerDiv.classList.add('timer');
-      timerDiv.innerHTML = `<strong>${measure.measure}:</strong> ${measure.time} - ✅ Medida confirmada`;
-      
-      if (measure.pioOD || measure.pioOE) {
-        const pioGroup = document.createElement('div');
-        pioGroup.className = 'pio-group';
-        
-        const pioOD = createInput('PIO OD');
-        const pioOE = createInput('PIO OE');
-        pioOD.value = measure.pioOD || '';
-        pioOE.value = measure.pioOE || '';
-        
-        pioGroup.appendChild(pioOD);
-        pioGroup.appendChild(pioOE);
-        timerDiv.appendChild(pioGroup);
-      }
-      
-      timersContainer.appendChild(timerDiv);
-    });
+  // Salvar apenas quando todos os campos estão preenchidos
+  function tryToSave() {
+    const odValue = odInput.value.trim();
+    const oeValue = oeInput.value.trim();
+    const obsValue = obsTextarea.value.trim();
     
-    // Se ainda há medidas pendentes, adicionar botão de finalizar
-    const expectedMeasures = examData.type === 'tsh' ? 4 : 3;
-    if (examData.measures.length >= expectedMeasures) {
-      const finalizeBtn = document.createElement('button');
-      finalizeBtn.textContent = 'Finalizar Paciente';
-      finalizeBtn.addEventListener('click', () => {
-        const idx = history.findIndex(h => h.id === examData.id);
-        if (idx !== -1) {
-          history[idx].end = new Date();
-          patientDiv.remove();
-          updateHistory();
-          saveToFirebase(history[idx]);
-        }
-      });
-      patientDiv.appendChild(finalizeBtn);
+    if (odValue.length === 3 && oeValue.length === 3) {
+      // Atualizar dados do exame
+      if (!exam.paquimetria) exam.paquimetria = { od: '', oe: '' };
+      exam.paquimetria.od = odValue;
+      exam.paquimetria.oe = oeValue;
+      exam.observation = obsValue;
+      
+      // Salvar no Firebase
+      saveToFirebase(exam);
+      showMessage("Paquimetria e observações salvas!");
     }
   }
+  
+  // Eventos para salvar
+  odInput.addEventListener('blur', tryToSave);
+  oeInput.addEventListener('blur', tryToSave);
+  obsTextarea.addEventListener('blur', tryToSave);
+  
+  // Ctrl+Enter para salvar observações
+  obsTextarea.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter') {
+      tryToSave();
+    }
+  });
+  
+  container.appendChild(flowDiv);
 }
 
 /* === Impressão de um exame (A5) === */
@@ -555,30 +662,17 @@ function printSingleExam(exam) {
 
   win.document.write(`<div class="block"><strong>Nome:</strong> ${exam.name}</div>`);
   win.document.write(`<div class="block"><strong>Data de Nascimento:</strong> ${formatDateDisplay(exam.dob)} (${calculateAge(exam.dob)} anos)</div>`);
-  win.document.write(`<div class="block"><strong>Data do Exame:</strong> ${exam.dateDisplay || formatDateDisplay(exam.start)}</div>`);
+  win.document.write(`<div class="block"><strong>Data do Exame:</strong> ${exam.dateDisplay || exam.dateISO}</div>`);
+  win.document.write(`<div class="block"><strong>Tipo de Exame:</strong> ${exam.type.toUpperCase()}</div>`);
+  win.document.write(`<div class="block"><strong>Início:</strong> ${formatTime(exam.start)} | <strong>Fim:</strong> ${formatTime(exam.end)}</div>`);
 
-  const exameCompleto = exam.type === 'tsh'
-    ? "Teste de Sobrecarga Hídrica"
-    : "Curva Tensional de Três Medidas";
-
-  win.document.write(`<h2 class="center">Resultado</h2>`);
-  win.document.write(`<h3 class="center">${exameCompleto}</h3>`);
-
-  // Para curva, alinhar horários segundo 1ª medida (se houver)
-  let firstTime = null;
-  if (exam.type === 'curva' && exam.measures && exam.measures.length > 0) {
-    const parts = (exam.measures[0].time || '').split(':').map(Number);
-    if (parts.length >= 2) {
-      firstTime = new Date();
-      firstTime.setHours(parts[0], parts[1], 0, 0);
-    }
-  }
+  win.document.write(`<h2>${exam.type === 'tsh' ? 'TESTE DE SOBRECARGA HÍDRICA' : 'CURVA TENSIONAL'}</h2>`);
+  win.document.write(`<h3>Instituto de Olhos Adi Nascimento</h3>`);
 
   (exam.measures || []).forEach((m, i) => {
-    let descricao = '';
-    if (exam.type === 'tsh') {
-      descricao = i === 0 ? "Antes da ingestão de água" : `${i * 15} minutos após ingestão de água`;
-    } else if (exam.type === 'curva') {
+    let descricao = m.measure;
+    if (exam.type === 'curva' && exam.measures.length > 1) {
+      const firstTime = exam.start;
       if (firstTime) {
         const medidaTime = new Date(firstTime.getTime() + i * 3 * 60 * 60 * 1000);
         const hh = medidaTime.getHours().toString().padStart(2, '0');
@@ -588,12 +682,7 @@ function printSingleExam(exam) {
         descricao = `${i + 1}ª Medida (${m.time || '--:--'})`;
       }
     }
-    
-    // Adicionar mmHg para resultados de PIO
-    const pioOD = m.pioOD ? `${m.pioOD} mmHg` : '--';
-    const pioOE = m.pioOE ? `${m.pioOE} mmHg` : '--';
-    
-    win.document.write(`<div class="result-line"><strong>${descricao}</strong><br>${pioOD} | ${pioOE}</div>`);
+    win.document.write(`<div class="result-line"><strong>${descricao}</strong><br>${m.pioOD || '--'} mmHg | ${m.pioOE || '--'} mmHg</div>`);
   });
 
   const pq = exam.paquimetria;
@@ -618,103 +707,165 @@ function updateHistory() {
   if (oldHistoryDiv) oldHistoryDiv.innerHTML = "";
   const todayISO = toISODate();
 
-  history.forEach((exam) => {
-    if (!exam.end) return; // só exibe finalizados
-    const isToday = exam.dateISO === todayISO;
+  // Separar exames do dia e antigos
+  const todayExams = history.filter(exam => exam.end && exam.dateISO === todayISO);
+  const oldExams = history.filter(exam => exam.end && exam.dateISO !== todayISO).sort((a, b) => new Date(b.start) - new Date(a.start));
 
-    const container = document.createElement('div');
-    container.className = 'exam-item';
-
-    const basicInfo = document.createElement('div');
-    basicInfo.innerHTML = `
-      <strong>${exam.name}</strong> (${exam.type.toUpperCase()}) - ${calculateAge(exam.dob)} anos<br>
-      Nasc: ${exam.dob} | Operador: ${exam.operator}<br>
-      Data: ${exam.dateDisplay || exam.dateISO} | Início: ${formatTime(exam.start)} | Fim: ${formatTime(exam.end)}
-    `;
-
-    const toggle = document.createElement('button');
-    toggle.textContent = '▼';
-    toggle.className = 'toggle-btn';
-
-    const printBtn = document.createElement('button');
-    printBtn.textContent = '🖨️';
-    printBtn.className = 'print-btn';
-    printBtn.onclick = () => printSingleExam(exam);
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = '🗑️';
-    deleteBtn.className = 'print-btn danger';
-    deleteBtn.onclick = () => {
-      if (confirm('Tem certeza que deseja excluir este exame?')) {
-        deleteExamFromFirebase(exam.id);
-      }
-    };
-
-    const detail = document.createElement('div');
-    detail.className = 'exam-detail';
-    detail.innerHTML = `
-      ${ (exam.measures || []).map((m, i) => {
-        const label = exam.type === 'tsh' && i === 0 ? '1ª Medida (Sem Água)' : m.measure;
-        return `➤ ${label} (${m.time}) | PIO OD: ${m.pioOD || '-'} | PIO OE: ${m.pioOE || '-'}<br>`;
-      }).join('')}
-    `;
-
-    toggle.onclick = () => {
-      const isOpen = detail.classList.contains('open');
-      
-      if (isOpen) {
-        // Fechando
-        detail.classList.remove('open');
-        detail.classList.add('closing');
-        toggle.textContent = '▼';
-        
-        // Remove a classe closing após a animação
-        setTimeout(() => {
-          detail.classList.remove('closing');
-        }, 400);
-      } else {
-        // Abrindo
-        detail.classList.remove('closing');
-        detail.classList.add('open');
-        toggle.textContent = '▲';
-      }
-    };
-
-    // observações editáveis
-    const obs = document.createElement('textarea');
-    obs.value = exam.observation || '';
-    obs.placeholder = "Digite observações...";
-    obs.className = 'observacao-edit';
-    obs.onchange = () => {
-      exam.observation = obs.value;
-      saveToFirebase(exam);
-    };
-
-    const pqDiv = document.createElement('div');
-    pqDiv.className = 'paquimetria-group';
-    pqDiv.innerHTML = `
-      <label>Paquimetria OD: <input type="number" value="${exam.paquimetria?.od || ''}" /></label>
-      <label>Paquimetria OE: <input type="number" value="${exam.paquimetria?.oe || ''}" /></label>
-    `;
-    // listeners para salvar ao alterar paquimetria
-    const inputs = pqDiv.querySelectorAll('input');
-    inputs[0].addEventListener('change', (e) => { 
-      if (!exam.paquimetria) exam.paquimetria = { od: '', oe: '' };
-      exam.paquimetria.od = e.target.value; 
-      saveToFirebase(exam); 
-    });
-    inputs[1].addEventListener('change', (e) => { 
-      if (!exam.paquimetria) exam.paquimetria = { od: '', oe: '' };
-      exam.paquimetria.oe = e.target.value; 
-      saveToFirebase(exam); 
-    });
-
-    detail.appendChild(obs);
-    detail.appendChild(pqDiv);
-
-    container.append(basicInfo, toggle, printBtn, deleteBtn, detail);
-    (isToday ? historyDiv : oldHistoryDiv).appendChild(container);
+  // Atualizar histórico do dia
+  todayExams.forEach((exam) => {
+    const container = createExamItem(exam, true); // true = editável
+    historyDiv.appendChild(container);
   });
+
+  // Atualizar histórico antigo com paginação
+  updateOldHistoryWithPagination(oldExams);
+}
+
+/* === Criar item de exame === */
+function createExamItem(exam, isEditable = false) {
+  const container = document.createElement('div');
+  container.className = 'exam-item';
+
+  const basicInfo = document.createElement('div');
+  basicInfo.innerHTML = `
+    <strong>${exam.name}</strong> (${exam.type.toUpperCase()}) - ${calculateAge(exam.dob)} anos<br>
+    Nasc: ${exam.dob}<br>
+    Data: ${exam.dateDisplay || exam.dateISO} | Início: ${formatTime(exam.start)} | Fim: ${formatTime(exam.end)}
+  `;
+
+  const toggle = document.createElement('button');
+  toggle.textContent = '▼';
+  toggle.className = 'toggle-btn';
+
+  const printBtn = document.createElement('button');
+  printBtn.textContent = '🖨️';
+  printBtn.className = 'print-btn';
+  printBtn.onclick = () => printSingleExam(exam);
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.textContent = '🗑️';
+  deleteBtn.className = 'print-btn danger';
+  deleteBtn.onclick = () => {
+    if (confirm('Tem certeza que deseja excluir este exame?')) {
+      deleteExamFromFirebase(exam.id);
+    }
+  };
+
+  const detail = document.createElement('div');
+  detail.className = 'exam-detail';
+  detail.innerHTML = `
+    ${ (exam.measures || []).map((m, i) => {
+      const label = exam.type === 'tsh' && i === 0 ? '1ª Medida (Sem Água)' : m.measure;
+      return `➤ ${label} (${m.time}) | PIO OD: ${m.pioOD || '-'} mmHg | PIO OE: ${m.pioOE || '-'} mmHg<br>`;
+    }).join('')}
+  `;
+
+  toggle.onclick = () => {
+    const isOpen = detail.classList.contains('open');
+    
+    if (isOpen) {
+      // Fechando
+      detail.classList.remove('open');
+      detail.classList.add('closing');
+      toggle.textContent = '▼';
+      
+      // Remove a classe closing após a animação
+      setTimeout(() => {
+        detail.classList.remove('closing');
+      }, 400);
+    } else {
+      // Abrindo
+      detail.classList.remove('closing');
+      detail.classList.add('open');
+      toggle.textContent = '▲';
+    }
+  };
+
+  // Adicionar fluxo de paquimetria apenas para exames editáveis (histórico do dia)
+  if (isEditable) {
+    createPaquimetriaFlow(exam, detail);
+  } else {
+    // Para histórico antigo, mostrar apenas informações (somente leitura)
+    const pqDiv = document.createElement('div');
+    pqDiv.innerHTML = `
+      <div style="margin-top: 10px; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+        <strong>Paquimetria:</strong> OD: ${exam.paquimetria?.od || '--'} µm | OE: ${exam.paquimetria?.oe || '--'} µm<br>
+        <strong>Observações:</strong> ${exam.observation || 'Nenhuma observação'}
+      </div>
+    `;
+    detail.appendChild(pqDiv);
+  }
+
+  container.append(basicInfo, toggle, printBtn, deleteBtn, detail);
+  return container;
+}
+
+/* === Atualizar histórico antigo com paginação === */
+function updateOldHistoryWithPagination(oldExams) {
+  const totalItems = oldExams.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = oldExams.slice(startIndex, endIndex);
+
+  // Limpar conteúdo anterior
+  oldHistoryDiv.innerHTML = "";
+
+  // Adicionar controles de paginação no topo
+  if (totalPages > 1) {
+    const topPagination = createPaginationControls(totalItems, totalPages);
+    oldHistoryDiv.appendChild(topPagination);
+  }
+
+  // Adicionar itens da página atual
+  currentItems.forEach((exam) => {
+    const container = createExamItem(exam, false); // false = somente leitura
+    oldHistoryDiv.appendChild(container);
+  });
+
+  // Adicionar controles de paginação no final
+  if (totalPages > 1) {
+    const bottomPagination = createPaginationControls(totalItems, totalPages);
+    oldHistoryDiv.appendChild(bottomPagination);
+  }
+}
+
+/* === Criar controles de paginação === */
+function createPaginationControls(totalItems, totalPages) {
+  const paginationDiv = document.createElement('div');
+  paginationDiv.className = 'pagination-controls';
+
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = '← Anterior';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => {
+    if (currentPage > 1) {
+      currentPage--;
+      updateHistory();
+    }
+  };
+
+  const pageInfo = document.createElement('span');
+  pageInfo.className = 'pagination-info';
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  pageInfo.textContent = `Mostrando ${totalItems} de ${totalItems} exames | Página ${currentPage} de ${totalPages}`;
+
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = 'Próxima →';
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.onclick = () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      updateHistory();
+    }
+  };
+
+  paginationDiv.appendChild(prevBtn);
+  paginationDiv.appendChild(pageInfo);
+  paginationDiv.appendChild(nextBtn);
+
+  return paginationDiv;
 }
 
 /* === Deletar exame do Firebase === */
@@ -768,12 +919,12 @@ function printMultipleExams(exams, title) {
     win.document.write(`<div class="block"><strong>Medidas:</strong><br>`);
     (exam.measures || []).forEach((m, i) => {
       const label = exam.type === 'tsh' && i === 0 ? '1ª Medida (Sem Água)' : m.measure;
-      win.document.write(`➤ ${label} (${m.time}) | PIO OD: ${m.pioOD || '-'} | PIO OE: ${m.pioOE || '-'}<br>`);
+      win.document.write(`➤ ${label} (${m.time}) | PIO OD: ${m.pioOD || '-'} mmHg | PIO OE: ${m.pioOE || '-'} mmHg<br>`);
     });
     win.document.write(`</div>`);
 
     if (exam.paquimetria?.od || exam.paquimetria?.oe) {
-      win.document.write(`<div class="block"><strong>Paquimetria:</strong> OD: ${exam.paquimetria.od || '--'} µm | OE: ${exam.paquimetria.oe || '--'} µm</div>`);
+      win.document.write(`<div class="block"><strong>Paquimetria:</strong> Olho Direito: ${exam.paquimetria.od || '--'} µm | Olho Esquerdo: ${exam.paquimetria.oe || '--'} µm</div>`);
     }
 
     if (exam.observation?.trim()) {

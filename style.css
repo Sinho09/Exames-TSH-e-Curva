@@ -163,6 +163,17 @@ button:hover, .tab-btn:hover, .tab-btn.active {
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
+.patient.readonly {
+  background: #e9ecef;
+  border: 2px dashed #6c757d;
+  opacity: 0.8;
+}
+
+body.dark-mode .patient.readonly {
+  background: #2d3748;
+  border: 2px dashed #718096;
+}
+
 .patient .timer {
   margin-top: 5px;
   font-size: 13px;
@@ -269,6 +280,63 @@ body.dark-mode select {
   font-size: 13px;
 }
 
+.paquimetria-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.paquimetria-flow input {
+  width: 80px;
+  text-align: center;
+  font-size: 16px;
+  padding: 8px;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+}
+
+.paquimetria-flow input:focus {
+  outline: none;
+  border-color: #0056b3;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.paquimetria-flow textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 8px;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.paquimetria-flow textarea:focus {
+  outline: none;
+  border-color: #0056b3;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.paquimetria-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.paquimetria-step label {
+  font-weight: bold;
+  min-width: 120px;
+}
+
+body.dark-mode .paquimetria-flow {
+  background: #2d3748;
+  border-color: #4a5568;
+}
+
 .message {
   position: fixed;
   top: 10px;
@@ -299,8 +367,15 @@ body.dark-mode select {
   text-align: center;
   font-size: 13px;
   margin-top: 40px;
-  color: rgba(0, 0, 0, 0.3);
+  color: rgba(0, 0, 0, 0.4);
   font-style: italic;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding-top: 20px;
+}
+
+body.dark-mode .custom-footer {
+  color: rgba(255, 255, 255, 0.3);
+  border-top-color: rgba(255, 255, 255, 0.1);
 }
 
 #history-wrapper {
@@ -308,6 +383,44 @@ body.dark-mode select {
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
+}
+
+/* Paginação para histórico antigo */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.pagination-controls button {
+  padding: 8px 16px;
+  background-color: var(--azul-medio);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+  background-color: var(--azul-escuro);
+}
+
+.pagination-controls button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #666;
+  font-style: italic;
+}
+
+body.dark-mode .pagination-info {
+  color: #aaa;
 }
 
 @media print {
@@ -322,7 +435,7 @@ body.dark-mode select {
     box-shadow: none !important;
   }
 
-  .tabs, .toggle-btn, #message, form, #patients-list, .print-btn, audio, #theme-toggle {
+  .tabs, .toggle-btn, #message, form, #patients-list, .print-btn, audio, #theme-toggle, .custom-footer, .pagination-controls {
     display: none !important;
   }
 
