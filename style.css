@@ -507,3 +507,65 @@ body.dark-mode .exam-item {
   box-shadow: 0 2px 5px rgba(255, 255, 255, 0.05);
 }
 
+/* Estilos para cards compactos no modo escuro */
+body.dark-mode .compact-exam-item {
+  background: #1c1f26 !important;
+  color: var(--texto-escuro) !important;
+  border: 1px solid #333 !important;
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.05) !important;
+}
+
+body.dark-mode .compact-exam-item:hover {
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Seções internas dos cards compactos no modo escuro */
+body.dark-mode .compact-exam-item div[style*="background: #fff"] {
+  background: #2d333b !important;
+  color: var(--texto-escuro) !important;
+}
+
+body.dark-mode .compact-exam-item div[style*="background: #e8f4fd"] {
+  background: #1f2937 !important;
+  color: var(--texto-escuro) !important;
+}
+
+/* Botões nos cards compactos no modo escuro */
+body.dark-mode .compact-exam-item button {
+  border-color: #444 !important;
+}
+
+body.dark-mode .compact-exam-item button[style*="background: #007bff"] {
+  background: #0d6efd !important;
+  border-color: #0d6efd !important;
+}
+
+body.dark-mode .compact-exam-item button[style*="background: #dc3545"] {
+  background: #dc3545 !important;
+  border-color: #dc3545 !important;
+}
+
+/* Cards readonly (exames em andamento) no modo escuro */
+body.dark-mode .patient.readonly {
+  background: #1a1d23 !important;
+  border: 2px dashed #444 !important;
+  color: #aaa !important;
+}
+
+/* Ícones e emojis no modo escuro */
+body.dark-mode .patient.readonly small {
+  color: #888 !important;
+}
+
+/* Filtros de busca no modo escuro */
+body.dark-mode input[placeholder*="Buscar"] {
+  background: #2d333b;
+  color: var(--texto-escuro);
+  border-color: #444;
+}
+
+body.dark-mode input[placeholder*="Buscar"]:focus {
+  border-color: var(--azul-medio);
+  box-shadow: 0 0 0 2px rgba(2, 124, 198, 0.2);
+}
+
